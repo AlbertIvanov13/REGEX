@@ -13,7 +13,6 @@ namespace _05._Race
 
 			Dictionary<string, Person> contestants = new Dictionary<string, Person>();
 			string[] arrayOfNames = Console.ReadLine().Split(", ");
-			//List<string> contestants = new List<string>();
 			int sum = 0;
 			while (true)
 			{
@@ -41,21 +40,34 @@ namespace _05._Race
 						person.Distance += int.Parse(contestant1.ToString());
 					}
 				}
-				if (!contestants.ContainsKey(sb.ToString()))
+				if (!contestants.ContainsKey(sb.ToString()) && arrayOfNames.Contains(sb.ToString()))
 				{
-					contestants.Add(sb.ToString(), );
+					contestants.Add(sb.ToString(), person);
 				}
-				else
+				else if (arrayOfNames.Contains(sb.ToString()))
 				{
-					contestants[sb.ToString()].Distance += sum;
+					for (int i = 0; i < encryptedContestant.Length; i++)
+					{
+						Match contestant1 = Regex.Match(encryptedContestant[i].ToString(), numbersPattern);
+
+						if (contestant1.Success)
+						{
+							contestants[sb.ToString()].Distance += int.Parse(contestant1.ToString());
+						}
+					}
 				}
-				//contestants.Add(sb.ToString());
 			}
+            
+			var orderedContestants = contestants.OrderByDescending(p => p.Value.Distance).Take(3).ToList();
+
+            Console.WriteLine($"1st place: {orderedContestants[0].Key}");
+            Console.WriteLine($"2nd place: {orderedContestants[1].Key}");
+            Console.WriteLine($"3rd place: {orderedContestants[2].Key}");
 		}
 
 		class Person
 		{
-            public string Name { get; set; }
+           // public string Name { get; set; }
             public int Distance { get; set; }
         }
 	}
