@@ -1,16 +1,9 @@
 ﻿using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 
-/*
-STCHoghudd4=63333$G$0A53333
-STCDoghudd4=63333$D$0A53333
-STCVoghudd4=63333$G$0A53333
-STCNoghudd4=63333$G$0A53333
-STCKoghudd4=63333$G$0A53333
-STCDoghudd4bbbb=bbbb63333$D$0Abbbb53333
-STCQoghudd4=63333$G$0A53333
- */
 namespace _07._StarEnigma
 {
 	internal class Program
@@ -18,19 +11,21 @@ namespace _07._StarEnigma
 		static void Main(string[] args)
 		{
 			string pattern = @"[STARstar]";
-			string newPattern = @"\@(?<planetName>[A-Za-z]+)[^@\-!:>]*\:[^@\-!:>]*?(?<population>\d+)[^@\-!:>]*\!(?<attackType>[A|D])\![^@\-!:>]*\-\>[^@\-!:>]*?(?<soldierCount>\d+)";
-			int input = int.Parse(Console.ReadLine());
-			int count = 0;
+			string newPattern = @".*\@(?<planetName>[A-Za-z]+)[^\@\-\!\:\>]*:(?<population>\d+)[^\@\-\!\:\>]*!(?<attackType>A|D)![^\@\-\!\:\>]*->(?<soldierCount>\d+).*";
+			uint userInput; while (!uint.TryParse(Console.ReadLine(), out userInput) || userInput < 0 || userInput > 100) Environment.Exit(0);
+			uint count = 0;
 
-			bool isContaining = false;
-			List<Planet> planets = new List<Planet>();
-			for (int i = 0; i < input; i++)
+			List<Planet> attackedPlanets = new List<Planet>();
+			List<Planet> destroyedPlanets = new List<Planet>();
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < userInput; i++)
 			{
 				string encryptedMessage = Console.ReadLine();
 
 				if (encryptedMessage == null)
 				{
-					continue;
+					break;
 				}
 
 				Match match = Regex.Match(encryptedMessage, pattern);
@@ -38,7 +33,7 @@ namespace _07._StarEnigma
 				if (match.Success)
 				{
 					count = 0;
-					StringBuilder sb = new StringBuilder();
+					sb = new StringBuilder();
 					for (int j = 0; j < encryptedMessage.Length; j++)
 					{
 						if (encryptedMessage[j].ToString().Equals("S", StringComparison.OrdinalIgnoreCase))
@@ -58,49 +53,44 @@ namespace _07._StarEnigma
 							count++;
 						}
 					}
+				}
 
-					for (int k = 0; k < encryptedMessage.Length; k++)
+				for (int k = 0; k < encryptedMessage.Length; k++)
+				{
+					sb.Append((char)(encryptedMessage[k] - count));
+				}
+
+				string word = sb.ToString();
+
+				Match newMatch = Regex.Match(word, newPattern);
+				if (newMatch.Success)
+				{
+					string planetName = newMatch.Groups["planetName"].Value;
+					int population = int.Parse(newMatch.Groups["population"].Value);
+					string attackType = newMatch.Groups["attackType"].Value;
+					int soldierCount = int.Parse(newMatch.Groups["soldierCount"].Value);
+					Planet planet = new Planet(planetName, population, attackType, soldierCount);
+					if (attackType == "A")
 					{
-						sb.Append((char)(encryptedMessage[k] - count));
+						attackedPlanets.Add(planet);
 					}
-
-					string word = sb.ToString();
-
-					Match newMatch = Regex.Match(word, newPattern);
-					if (newMatch.Success)
+					else if (attackType == "D")
 					{
-						string planetName = newMatch.Groups["planetName"].Value;
-						int population = int.Parse(newMatch.Groups["population"].Value);
-						string attackType = newMatch.Groups["attackType"].Value;
-						int soldierCount = int.Parse(newMatch.Groups["soldierCount"].Value);
-						Planet planet = new Planet(planetName, population, attackType, soldierCount);
-
-						foreach (Planet item in planets)
-						{
-							if (item.PlanetName == planetName)
-							{
-								isContaining = true;
-							}
-						}
-
-						if (!isContaining)
-						{
-							planets.Add(planet);
-						}
+						destroyedPlanets.Add(planet);
 					}
 				}
 			}
 
-			var attackedPlanets = planets.Where(p => p.AttackType == "A").OrderBy(p => p.PlanetName).ToList();
-			Console.WriteLine($"Attacked planets: {attackedPlanets.Count}");
-			foreach (Planet attackedPlanet in attackedPlanets)
+			List<Planet> filterAttacked = attackedPlanets.OrderBy(p => p.PlanetName).ToList();
+			Console.WriteLine($"Attacked planets: {filterAttacked.Count}");
+			foreach (Planet attackedPlanet in filterAttacked)
 			{
 				Console.WriteLine($"-> {attackedPlanet.PlanetName}");
 			}
 
-			var destroyedPlanets = planets.Where(p => p.AttackType == "D").OrderBy(p => p.PlanetName).ToList();
-			Console.WriteLine($"Destroyed planets: {destroyedPlanets.Count}");
-			foreach (Planet destroyedPlanet in destroyedPlanets)
+			List<Planet> filterDestroyed = destroyedPlanets.OrderBy(p => p.PlanetName).ToList();
+			Console.WriteLine($"Destroyed planets: {filterDestroyed.Count}");
+			foreach (Planet destroyedPlanet in filterDestroyed)
 			{
 				Console.WriteLine($"-> {destroyedPlanet.PlanetName}");
 			}
