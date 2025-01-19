@@ -11,29 +11,25 @@ namespace _07._StarEnigma
 		static void Main(string[] args)
 		{
 			string pattern = @"[STARstar]";
-			string newPattern = @".*\@(?<planetName>[A-Z][a-z]+)[^\@\-\!\:\>]*\:(?<population>\d+)[^\@\-\!\:\>]*\!(?<attackType>[AD])[^\@\-\!\:\>]*\![^\@\-\!\:\>]*\->(?<soldierCount>\d+).*";
 			int userInput = int.Parse(Console.ReadLine());
 			uint count = 0;
 
 			List<Planet> attackedPlanets = new List<Planet>();
 			List<Planet> destroyedPlanets = new List<Planet>();
 
-			List<char> newStrings = new List<char>();
-
 			StringBuilder sb = new StringBuilder();
 			bool isContaining = false;
 			for (int i = 0; i < userInput; i++)
 			{
+				count = 0;
 				string encryptedMessage = Console.ReadLine();
 
 				Match match = Regex.Match(encryptedMessage, pattern);
 				if (match.Success)
 				{
-					count = 0;
 					sb = new StringBuilder();
 					for (int j = 0; j < encryptedMessage.Length; j++)
 					{
-						newStrings.Add(encryptedMessage[j]);
 						if (encryptedMessage[j].ToString().Equals("S", StringComparison.OrdinalIgnoreCase))
 						{
 							count++;
@@ -60,6 +56,7 @@ namespace _07._StarEnigma
 			
 				string word = sb.ToString();
 
+				string newPattern = @".*\@(?<planetName>[A-Z][a-z]+)[^\@\-\!\:\>]*\:(?<population>\d+)[^\@\-\!\:\>]*\!(?<attackType>[AD])[^\@\-\!\:\>]*\![^\@\-\!\:\>]*\->(?<soldierCount>\d+).*";
 				Match newMatch = Regex.Match(word, newPattern);
 				if (newMatch.Success)
 				{
